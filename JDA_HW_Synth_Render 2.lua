@@ -2,12 +2,12 @@
   @author Jake d'Arc
   @license MIT
   @version 1.0.0
-  @about Automatic real-time bouncing and FX chain copying for tracks using ReaInsert with synths
+  @about Real-time pre-FX rendering and FX chain copying for MIDI/audio track pairs, intended for hardware synths
   @changelog
     - init
   @provides
-    [main] JDA_HW_Synth_Render/JDA_HW_Synth_Render_1P.lua
-    [main] JDA_HW_Synth_Render/JDA_HW_Synth_Render_2P.lua
+    [main] JDA_HW_Synth_Render/JDA_HW_Synth_Render_1P 2.lua
+    [main] JDA_HW_Synth_Render/JDA_HW_Synth_Render_2P 2.lua
 ]]
 
 function bounce(second_pass)
