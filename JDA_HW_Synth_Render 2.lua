@@ -20,6 +20,7 @@ function bounce(second_pass)
 end
 
 function main(second_pass)
+  reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock()
 
   -- If we didn't end up with a track, check if one is selected already, otherwise bail
@@ -156,8 +157,17 @@ function main(second_pass)
       reaper.SetMediaItemInfo_Value(selected_items[i], "B_MUTE", 1)
   end
 
-  -- Update the arrange view to reflect the changes
+  -- Unmute the original audio track because the render mutes it
+  reaper.SetMediaTrackInfo_Value(audio_track, "B_MUTE", 0)
+
+  -- Move the audio track above the new track because the new track is made above it for some reason
+  reaper.SetOnlyTrackSelected(audio_track)
+  local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
+  reaper.ReorderSelectedTracks(new_track_id - 1, 0)
+
+  -- Wrap up
   reaper.UpdateArrange()
+  reaper.PreventUIRefresh(-1)
 
   reaper.Undo_EndBlock('Hardware synth render',-1)
 end
