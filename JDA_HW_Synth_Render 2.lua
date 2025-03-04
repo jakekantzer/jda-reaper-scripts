@@ -31,7 +31,7 @@ function main(second_pass)
 
   local orig_track = reaper.GetSelectedTrack(0, 0)
   if orig_track == nil then
-    reaper.ShowMessageBox("Please select a track.", "Error", 0)
+    reaper.ShowMessageBox("Please select a single track.", "Error", 0)
   return end
 
   -- Time to check that they selected a track beginning in either "M: " or "A: "
