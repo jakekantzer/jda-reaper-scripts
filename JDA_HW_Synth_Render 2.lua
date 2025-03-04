@@ -165,10 +165,14 @@ function main(second_pass)
   local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
   reaper.ReorderSelectedTracks(new_track_id - 1, 0)
 
-  -- Color!
+  -- Color and name
   reaper.SetTrackColor(new_track, reaper.GetTrackColor(audio_track))
+  local retval, audio_track_name = reaper.GetTrackName(audio_track)
+  local new_track_name = "S: " .. string.sub(audio_track_name, 4)
+  reaper.GetSetMediaTrackInfo_String(new_track, "P_NAME", new_track_name, true)
 
   -- Wrap up
+  reaper.SetOnlyTrackSelected(new_track)
   reaper.UpdateArrange()
   reaper.PreventUIRefresh(-1)
 
