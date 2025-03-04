@@ -16,6 +16,8 @@ function main()
 
   reaper.Undo_BeginBlock()
 
+  reaper.PreventUIRefresh(1)
+
   -- Store the currently selected tracks
   local selected_tracks = {}
   for i = 0, selected_track_count - 1 do
@@ -53,6 +55,8 @@ function main()
 
   -- Update the arrange view to reflect the changes
   reaper.UpdateArrange()
+  
+  reaper.PreventUIRefresh(-1)
 
   reaper.Undo_EndBlock('Add Sends to Named',-1)
 end

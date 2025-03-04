@@ -40,7 +40,7 @@ function main(second_pass)
   local audio_track = nil
   local midi_track = nil
 
-  -- If they selected the MIDI track, we need to find the corresponding audio one
+  -- If they selected the MIDI track, we need to find the corresponding audio one or vice-versa
   if string.sub(first_track_name, 0, 3) == "M: " then
     midi_track = orig_track
     local track_count = reaper.CountTracks(0)
@@ -164,6 +164,9 @@ function main(second_pass)
   reaper.SetOnlyTrackSelected(audio_track)
   local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
   reaper.ReorderSelectedTracks(new_track_id - 1, 0)
+
+  -- Color!
+  reaper.SetTrackColor(new_track, reaper.GetTrackColor(audio_track))
 
   -- Wrap up
   reaper.UpdateArrange()
