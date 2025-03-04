@@ -22,7 +22,8 @@ function main()
     local retval, track_name = reaper.GetTrackName(track)
     if string.sub(track_name, 0, 3) == "A: " then
       local arm_status = reaper.GetMediaTrackInfo_Value(track, "I_RECARM")
-      if arm_status == 0 then
+      local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
+      if rec_mode == 2 and arm_status == 0 then
         reaper.SetMediaTrackInfo_Value(track, "I_RECARM", 1)
       end
     end
