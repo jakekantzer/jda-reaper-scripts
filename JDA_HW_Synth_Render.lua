@@ -19,7 +19,7 @@ function bounce(second_pass)
   end
 end
 
-function main(second_pass)
+function main(second_pass, copy_fx)
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock()
 
@@ -135,18 +135,20 @@ function main(second_pass)
   -- Assign the new track to a variable for later
   local new_track = reaper.GetSelectedTrack(0, 0)
 
-  -- Get the number of FX in the source track
-  local num_fx = reaper.TrackFX_GetCount(audio_track)
-
-  -- Restore the original bypass states before copying effects
+  -- Restore the original bypass states 
   for i, state in pairs(fx_bypass_states) do
-      reaper.TrackFX_SetEnabled(audio_track, i, state)
+    reaper.TrackFX_SetEnabled(audio_track, i, state)
   end
-  
-  -- Copy all FX
-  for i = 0, num_fx - 1 do
-    local fx_chunk = reaper.TrackFX_GetFXGUID(audio_track, i)
-    reaper.TrackFX_CopyToTrack(audio_track, i, new_track, reaper.TrackFX_GetCount(new_track), false)
+
+  if copy_fx then
+    -- Get the number of FX in the source track
+    local num_fx = reaper.TrackFX_GetCount(audio_track)
+
+    -- Copy all FX
+    for i = 0, num_fx - 1 do
+      local fx_chunk = reaper.TrackFX_GetFXGUID(audio_track, i)
+      reaper.TrackFX_CopyToTrack(audio_track, i, new_track, reaper.TrackFX_GetCount(new_track), false)
+    end
   end
 
   -- Restore the original automation mode
