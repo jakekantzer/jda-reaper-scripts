@@ -23,7 +23,7 @@ function main(second_pass, new_track)
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock()
 
-  -- If we didn't end up with a track, check if one is selected already, otherwise bail
+  -- Check if just one track is selected because handling two is annoying
   local selected_track_count = reaper.CountSelectedTracks(0)
   if selected_track_count > 1 then
     reaper.ShowMessageBox("Please select a single track beginning with \"M: \" or \"A: \"", "Error", 0)
@@ -33,6 +33,7 @@ function main(second_pass, new_track)
   if orig_track == nil then
     reaper.ShowMessageBox("Please select a single track beginning with \"M: \" or \"A: \"", "Error", 0)
   return end
+
   -- Time to check that they selected a track beginning in either "M: " or "A: "
   local retval, first_track_name = reaper.GetTrackName(orig_track)
 
