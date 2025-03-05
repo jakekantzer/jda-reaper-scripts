@@ -19,11 +19,11 @@ function main()
   local track_count = reaper.CountTracks(0)
   local tracks_to_arm = {}
 
-  -- Check for "A: " at the beginning of the track name
+  -- Check for " [A]" at the end of the track name
   for i = 0, track_count - 1 do
     local track = reaper.GetTrack(0, i)
     local retval, track_name = reaper.GetTrackName(track)
-    if string.sub(track_name, 0, 3) == "A: " then
+    if string.sub(track_name, -4) == " [A]" then
       local arm_status = reaper.GetMediaTrackInfo_Value(track, "I_RECARM")
       local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
       if rec_mode == 2 and arm_status == 0 then

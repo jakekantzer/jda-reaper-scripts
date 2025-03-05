@@ -33,7 +33,6 @@ function main(second_pass, copy_fx)
   if orig_track == nil then
     reaper.ShowMessageBox("Please select a single track.", "Error", 0)
   return end
-
   -- Time to check that they selected a track beginning in either "M: " or "A: "
   local retval, first_track_name = reaper.GetTrackName(orig_track)
 
@@ -41,29 +40,29 @@ function main(second_pass, copy_fx)
   local midi_track = nil
 
   -- If they selected the MIDI track, we need to find the corresponding audio one or vice-versa
-  if string.sub(first_track_name, 0, 3) == "M: " then
+  if string.sub(first_track_name, -4) == " [M]" then
     midi_track = orig_track
     local track_count = reaper.CountTracks(0)
     for i = 0, track_count - 1 do
       local current_track = reaper.GetTrack(0, i)
       local retval, second_track_name = reaper.GetTrackName(current_track)
 
-      if string.sub(second_track_name, 0, 3) == "A: " then
-        if (string.sub(second_track_name, 4) == string.sub(first_track_name, 4)) then
+      if string.sub(second_track_name, -4) == " [A]" then
+        if (string.sub(second_track_name, 1, #second_track_name - 5) == string.sub(first_track_name, 1, #first_track_name - 5)) then
           audio_track = current_track
           break
         end
       end
     end
-  elseif string.sub(first_track_name, 0, 3) == "A: " then
+  elseif string.sub(first_track_name, -4) == " [A]" then
     audio_track = orig_track
     local track_count = reaper.CountTracks(0)
     for i = 0, track_count - 1 do
       local current_track = reaper.GetTrack(0, i)
       local retval, second_track_name = reaper.GetTrackName(current_track)
 
-      if string.sub(second_track_name, 0, 3) == "M: " then
-        if (string.sub(second_track_name, 4) == string.sub(first_track_name, 4)) then
+      if string.sub(second_track_name, -4) == " [M]" then
+        if (string.sub(second_track_name, 1, #second_track_name - 5) == string.sub(first_track_name, 1, #first_track_name - 5)) then
           midi_track = current_track
           break
         end
@@ -170,7 +169,7 @@ function main(second_pass, copy_fx)
   -- Color and name
   reaper.SetTrackColor(new_track, reaper.GetTrackColor(audio_track))
   local retval, audio_track_name = reaper.GetTrackName(audio_track)
-  local new_track_name = "S: " .. string.sub(audio_track_name, 4)
+  local new_track_name = string.sub(audio_track_name, 1, -5) .. " [S]"
   reaper.GetSetMediaTrackInfo_String(new_track, "P_NAME", new_track_name, true)
 
   -- Wrap up
