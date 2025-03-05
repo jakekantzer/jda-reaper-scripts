@@ -19,19 +19,19 @@ function bounce(second_pass)
   end
 end
 
-function main(second_pass, copy_fx)
+function main(second_pass, new_track)
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock()
 
   -- If we didn't end up with a track, check if one is selected already, otherwise bail
   local selected_track_count = reaper.CountSelectedTracks(0)
   if selected_track_count > 1 then
-    reaper.ShowMessageBox("Please select a single track.", "Error", 0)
+    reaper.ShowMessageBox("Please select a single track beginning with \"M: \" or \"A: \"", "Error", 0)
   return end
 
   local orig_track = reaper.GetSelectedTrack(0, 0)
   if orig_track == nil then
-    reaper.ShowMessageBox("Please select a single track.", "Error", 0)
+    reaper.ShowMessageBox("Please select a single track beginning with \"M: \" or \"A: \"", "Error", 0)
   return end
   -- Time to check that they selected a track beginning in either "M: " or "A: "
   local retval, first_track_name = reaper.GetTrackName(orig_track)
@@ -139,7 +139,7 @@ function main(second_pass, copy_fx)
     reaper.TrackFX_SetEnabled(audio_track, i, state)
   end
 
-  if copy_fx then
+  if new_track then
     -- Get the number of FX in the source track
     local num_fx = reaper.TrackFX_GetCount(audio_track)
 
@@ -161,7 +161,7 @@ function main(second_pass, copy_fx)
   -- Unmute the original audio track because the render mutes it
   reaper.SetMediaTrackInfo_Value(audio_track, "B_MUTE", 0)
 
-  if copy_fx then
+  if new_track then
     -- Move the audio track above the new track because the new track is made above it for some reason
     reaper.SetOnlyTrackSelected(audio_track)
     local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
