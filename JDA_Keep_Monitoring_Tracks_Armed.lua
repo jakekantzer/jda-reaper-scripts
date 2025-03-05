@@ -17,6 +17,9 @@ end
 
 function main()
   local track_count = reaper.CountTracks(0)
+  local tracks_to_arm = {}
+
+  -- Check for "A: " at the beginning of the track name
   for i = 0, track_count - 1 do
     local track = reaper.GetTrack(0, i)
     local retval, track_name = reaper.GetTrackName(track)
@@ -24,10 +27,20 @@ function main()
       local arm_status = reaper.GetMediaTrackInfo_Value(track, "I_RECARM")
       local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
       if rec_mode == 2 and arm_status == 0 then
-        reaper.SetMediaTrackInfo_Value(track, "I_RECARM", 1)
+        tracks_to_arm[#tracks_to_arm + 1] = track
       end
     end
   end
+
+  -- Arm everything at once so it looks nicer
+  if #tracks_to_arm > 0 then
+    reaper.PreventUIRefresh(1)
+    for _, track in ipairs(tracks_to_arm) do
+      reaper.SetMediaTrackInfo_Value(track, "I_RECARM", 1)
+    end
+    reaper.PreventUIRefresh(-1)
+  end
+  
   reaper.defer(main)
 end
 
