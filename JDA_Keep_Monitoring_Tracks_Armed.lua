@@ -2,7 +2,7 @@
   @author Jake d'Arc
   @license MIT
   @version 1.0.0
-  @about When on, keeps tracks beginning with "A: " armed 
+  @about When on, keeps tracks ending with " [A]" armed 
   @changelog
     - init
   @provides
