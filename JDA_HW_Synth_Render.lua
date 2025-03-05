@@ -161,19 +161,26 @@ function main(second_pass, copy_fx)
   -- Unmute the original audio track because the render mutes it
   reaper.SetMediaTrackInfo_Value(audio_track, "B_MUTE", 0)
 
-  -- Move the audio track above the new track because the new track is made above it for some reason
-  reaper.SetOnlyTrackSelected(audio_track)
-  local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
-  reaper.ReorderSelectedTracks(new_track_id - 1, 0)
+  if copy_fx then
+    -- Move the audio track above the new track because the new track is made above it for some reason
+    reaper.SetOnlyTrackSelected(audio_track)
+    local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
+    reaper.ReorderSelectedTracks(new_track_id - 1, 0)
 
-  -- Color and name
-  reaper.SetTrackColor(new_track, reaper.GetTrackColor(audio_track))
-  local retval, audio_track_name = reaper.GetTrackName(audio_track)
-  local new_track_name = string.sub(audio_track_name, 1, -5) .. " [S]"
-  reaper.GetSetMediaTrackInfo_String(new_track, "P_NAME", new_track_name, true)
+    -- Color and name
+    reaper.SetTrackColor(new_track, reaper.GetTrackColor(audio_track))
+    local retval, audio_track_name = reaper.GetTrackName(audio_track)
+    local new_track_name = string.sub(audio_track_name, 1, -5) .. " [S]"
+    reaper.GetSetMediaTrackInfo_String(new_track, "P_NAME", new_track_name, true)
+    reaper.SetOnlyTrackSelected(new_track)
+  else
+    -- Move the new item to the audio track and kill the new track
+    local new_item = reaper.GetTrackMediaItem(new_track, 0)
+    reaper.MoveMediaItemToTrack(new_item, audio_track)
+    reaper.DeleteTrack(new_track)
+  end
 
   -- Wrap up
-  reaper.SetOnlyTrackSelected(new_track)
   reaper.UpdateArrange()
   reaper.PreventUIRefresh(-1)
 
