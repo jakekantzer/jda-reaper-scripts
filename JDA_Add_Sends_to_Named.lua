@@ -2,7 +2,7 @@
   @author Jake d'Arc
   @license MIT
   @version 1.0.0
-  @about Add sends from selected track(s) to tracks with names starting with "FX: "
+  @about Add sends from selected track(s) to tracks with names ending with " [FX]"
   @changelog
     - init
   @provides
@@ -24,12 +24,12 @@ function main()
       selected_tracks[i] = reaper.GetSelectedTrack(0, i)
   end
 
-  -- Find tracks starting with "FX: " and add sends to them from the selected tracks
+  -- Find tracks ending with " [FX]" and add sends to them from the selected tracks
   local track_count = reaper.CountTracks(0)
   for i = 0, track_count - 1 do
     local track = reaper.GetTrack(0, i)
     local retval, track_name = reaper.GetTrackName(track)
-    if string.sub(track_name, 0, 4) == "FX: " then
+    if string.sub(track_name, -5) == " [FX]" then
       for j = 0, selected_track_count - 1 do
         local start_track = reaper.GetSelectedTrack(0, j)
 
