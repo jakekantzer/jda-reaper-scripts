@@ -53,12 +53,21 @@ function main()
     local audio_track = pair["A"]
     local midi_track = pair["M"]
 
+    -- Checking if they're different because always setting it can make for UI weirdness
     if audio_track ~= nil and midi_track ~= nil then
       local midi_track_mute = reaper.GetMediaTrackInfo_Value(midi_track, 'B_MUTE')
-      reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', midi_track_mute)
+      local audio_track_mute = reaper.GetMediaTrackInfo_Value(audio_track, 'B_MUTE')
+
+      if midi_track_mute ~= audio_track_mute then
+        reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', midi_track_mute)
+      end
 
       local midi_track_solo = reaper.GetMediaTrackInfo_Value(midi_track, 'I_SOLO')
-      reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', midi_track_solo)
+      local audio_track_solo = reaper.GetMediaTrackInfo_Value(audio_track, 'I_SOLO')
+
+      if midi_track_solo ~= audio_track_solo then
+        reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', midi_track_solo)
+      end
     end
   end
   reaper.PreventUIRefresh(-1)
