@@ -15,6 +15,10 @@ function SetButtonState(set)
   reaper.RefreshToolbar2(sec, cmd)
 end
 
+-- Recording previous values so we can figure out which track changed most recently and change the other to match
+previous_mute_values_by_guid = {}
+previous_solo_values_by_guid = {}
+
 function main()
   local track_count = reaper.CountTracks(0)
   local track_pairs_by_name = {}
@@ -49,27 +53,52 @@ function main()
   end
 
   reaper.PreventUIRefresh(1)
+
+  local mute_values_by_guid = {}
+  local solo_values_by_guid = {}
+
   for base_name, pair in pairs(track_pairs_by_name) do
     local audio_track = pair["A"]
     local midi_track = pair["M"]
 
     -- Checking if they're different because always setting it can make for UI weirdness
     if audio_track ~= nil and midi_track ~= nil then
+      local retval, midi_track_guid = reaper.GetSetMediaTrackInfo_String(midi_track, 'GUID', '', false)
+      local retval, audio_track_guid = reaper.GetSetMediaTrackInfo_String(audio_track, 'GUID', '', false)
+
       local midi_track_mute = reaper.GetMediaTrackInfo_Value(midi_track, 'B_MUTE')
       local audio_track_mute = reaper.GetMediaTrackInfo_Value(audio_track, 'B_MUTE')
 
+      mute_values_by_guid[midi_track_guid] = midi_track_mute
+      mute_values_by_guid[audio_track_guid] = audio_track_mute
+
       if midi_track_mute ~= audio_track_mute then
-        reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', midi_track_mute)
+        if previous_mute_values_by_guid[midi_track_guid] ~= midi_track_mute then
+          reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', midi_track_mute)
+        elseif previous_mute_values_by_guid[audio_track_guid] ~= audio_track_mute then
+          reaper.SetMediaTrackInfo_Value(midi_track, 'B_MUTE', audio_track_mute)
+        end
       end
 
       local midi_track_solo = reaper.GetMediaTrackInfo_Value(midi_track, 'I_SOLO')
       local audio_track_solo = reaper.GetMediaTrackInfo_Value(audio_track, 'I_SOLO')
 
+      solo_values_by_guid[midi_track_guid] = midi_track_solo
+      solo_values_by_guid[audio_track_guid] = audio_track_solo
+
       if midi_track_solo ~= audio_track_solo then
-        reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', midi_track_solo)
+        if previous_solo_values_by_guid[midi_track_guid] ~= midi_track_solo then
+          reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', midi_track_solo)
+        elseif previous_solo_values_by_guid[audio_track_guid] ~= audio_track_solo then
+          reaper.SetMediaTrackInfo_Value(midi_track, 'I_SOLO', audio_track_solo)
+        end
       end
     end
   end
+
+  previous_mute_values_by_guid = mute_values_by_guid
+  previous_solo_values_by_guid = solo_values_by_guid
+
   reaper.PreventUIRefresh(-1)
   
   reaper.defer(main)
