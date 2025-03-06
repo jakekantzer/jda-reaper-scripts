@@ -72,11 +72,22 @@ function main()
       mute_values_by_guid[midi_track_guid] = midi_track_mute
       mute_values_by_guid[audio_track_guid] = audio_track_mute
 
-      if midi_track_mute ~= audio_track_mute then
-        if previous_mute_values_by_guid[midi_track_guid] ~= midi_track_mute then
-          reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', midi_track_mute)
-        elseif previous_mute_values_by_guid[audio_track_guid] ~= audio_track_mute then
-          reaper.SetMediaTrackInfo_Value(midi_track, 'B_MUTE', audio_track_mute)
+      if previous_mute_values_by_guid[midi_track_guid] ~= nil and previous_mute_values_by_guid[audio_track_guid] ~= nil then
+        
+        if midi_track_mute ~= audio_track_mute then
+          if previous_mute_values_by_guid[midi_track_guid] ~= midi_track_mute then
+            reaper.Undo_DoUndo2(0)
+            reaper.Undo_BeginBlock()
+            reaper.SetMediaTrackInfo_Value(midi_track, 'B_MUTE', midi_track_mute)
+            reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', midi_track_mute)
+            reaper.Undo_EndBlock('Updated mute state of matching track', -1)
+          elseif previous_mute_values_by_guid[audio_track_guid] ~= audio_track_mute then
+            reaper.Undo_DoUndo2(0)
+            reaper.Undo_BeginBlock()
+            reaper.SetMediaTrackInfo_Value(audio_track, 'B_MUTE', audio_track_mute)
+            reaper.SetMediaTrackInfo_Value(midi_track, 'B_MUTE', audio_track_mute)
+            reaper.Undo_EndBlock('Updated mute state of matching track', -1)
+          end
         end
       end
 
@@ -86,11 +97,22 @@ function main()
       solo_values_by_guid[midi_track_guid] = midi_track_solo
       solo_values_by_guid[audio_track_guid] = audio_track_solo
 
-      if midi_track_solo ~= audio_track_solo then
-        if previous_solo_values_by_guid[midi_track_guid] ~= midi_track_solo then
-          reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', midi_track_solo)
-        elseif previous_solo_values_by_guid[audio_track_guid] ~= audio_track_solo then
-          reaper.SetMediaTrackInfo_Value(midi_track, 'I_SOLO', audio_track_solo)
+      if previous_solo_values_by_guid[midi_track_guid] ~= nil and previous_solo_values_by_guid[audio_track_guid] ~= nil then
+        
+        if midi_track_solo ~= audio_track_solo then
+          if previous_solo_values_by_guid[midi_track_guid] ~= midi_track_solo then
+            reaper.Undo_DoUndo2(0)
+            reaper.Undo_BeginBlock()
+            reaper.SetMediaTrackInfo_Value(midi_track, 'I_SOLO', midi_track_solo)
+            reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', midi_track_solo)
+            reaper.Undo_EndBlock('Updated solo state of matching track', -1)
+          elseif previous_solo_values_by_guid[audio_track_guid] ~= audio_track_solo then
+            reaper.Undo_DoUndo2(0)
+            reaper.Undo_BeginBlock()
+            reaper.SetMediaTrackInfo_Value(audio_track, 'I_SOLO', audio_track_solo)
+            reaper.SetMediaTrackInfo_Value(midi_track, 'I_SOLO', audio_track_solo)
+            reaper.Undo_EndBlock('Updated solo state of matching track', -1)
+          end
         end
       end
     end
