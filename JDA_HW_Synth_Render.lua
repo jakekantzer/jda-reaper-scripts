@@ -19,51 +19,35 @@ function bounce(second_pass)
   end
 end
 
-function main(second_pass, new_track)
-  reaper.PreventUIRefresh(1)
-  reaper.Undo_BeginBlock()
-
-  -- Check if just one track is selected because handling two is annoying
-  local selected_track_count = reaper.CountSelectedTracks(0)
-  if selected_track_count > 1 then
-    reaper.ShowMessageBox("Please select a single track beginning with \"M: \" or \"A: \"", "Error", 0)
-  return end
-
-  local orig_track = reaper.GetSelectedTrack(0, 0)
-  if orig_track == nil then
-    reaper.ShowMessageBox("Please select a single track beginning with \"M: \" or \"A: \"", "Error", 0)
-  return end
-
-  -- Time to check that they selected a track beginning in either "M: " or "A: "
-  local retval, first_track_name = reaper.GetTrackName(orig_track)
-
-  local audio_track = nil
-  local midi_track = nil
+function get_track_pair(first_track)
+  local first_track = reaper.GetSelectedTrack(0, 0)
 
   -- If they selected the MIDI track, we need to find the corresponding audio one or vice-versa
+  local retval, first_track_name = reaper.GetTrackName(first_track)
+
   if string.sub(first_track_name, -4) == " [M]" then
-    midi_track = orig_track
+    midi_track = first_track
     local track_count = reaper.CountTracks(0)
     for i = 0, track_count - 1 do
       local current_track = reaper.GetTrack(0, i)
       local retval, second_track_name = reaper.GetTrackName(current_track)
 
       if string.sub(second_track_name, -4) == " [A]" then
-        if (string.sub(second_track_name, 1, #second_track_name - 5) == string.sub(first_track_name, 1, #first_track_name - 5)) then
+        if string.sub(second_track_name, 1, #second_track_name - 4) == string.sub(first_track_name, 1, #first_track_name - 4) then
           audio_track = current_track
           break
         end
       end
     end
   elseif string.sub(first_track_name, -4) == " [A]" then
-    audio_track = orig_track
+    audio_track = first_track
     local track_count = reaper.CountTracks(0)
     for i = 0, track_count - 1 do
       local current_track = reaper.GetTrack(0, i)
       local retval, second_track_name = reaper.GetTrackName(current_track)
 
       if string.sub(second_track_name, -4) == " [M]" then
-        if (string.sub(second_track_name, 1, #second_track_name - 5) == string.sub(first_track_name, 1, #first_track_name - 5)) then
+        if string.sub(second_track_name, 1, #second_track_name - 4) == string.sub(first_track_name, 1, #first_track_name - 4) then
           midi_track = current_track
           break
         end
@@ -71,9 +55,59 @@ function main(second_pass, new_track)
     end
   end
 
-  if audio_track == nil or midi_track == nil then
-    reaper.ShowMessageBox("Could not find matching MIDI/audio pair. Please name MIDI tracks beginning with \"M: \" and audio tracks beginning with \"A: \"", "Error", 0)
+  return audio_track, midi_track
+end
+
+function check_track_pair()
+  local first_track = reaper.GetSelectedTrack(0, 0)
+  local retval, first_track_name = reaper.GetTrackName(first_track)
+  local second_track = reaper.GetSelectedTrack(0, 1)
+  local retval, second_track_name = reaper.GetTrackName(second_track)
+
+  if string.sub(first_track_name, -4) == " [M]" then
+    midi_track = first_track
+    if second_track_name == string.sub(first_track_name, 1, #first_track_name - 4) .. " [A]" then
+      audio_track = second_track
+    end
+  elseif string.sub(first_track_name, -4) == " [A]" then
+    audio_track = first_track
+    
+    if second_track_name == string.sub(first_track_name, 1, #first_track_name - 4) .. " [M]" then
+      midi_track = second_track
+    end
+  end
+
+  return audio_track, midi_track
+end
+
+function main(second_pass, new_track)
+  reaper.PreventUIRefresh(1)
+  reaper.Undo_BeginBlock()
+
+  -- Check if one or two tracks are selected
+  local selected_track_count = reaper.CountSelectedTracks(0)
+  if selected_track_count ~= 1 and selected_track_count ~= 2 then
+    reaper.ShowMessageBox("Please select a single track ending with [M] or [A] or a matching track pair.", "Error", 0)
   return end
+
+  -- Attempt to get the audio and MIDI track pair
+  local audio_track = nil
+  local midi_track = nil
+  
+  -- Either find the matching track or check that the tracks match based on selected track count
+  if selected_track_count == 1 then
+    audio_track, midi_track = get_track_pair()
+
+    if audio_track == nil or midi_track == nil then
+      reaper.ShowMessageBox("Could not find a matching track pair.", "Error", 0)
+    return end
+  elseif selected_track_count == 2 then
+    audio_track, midi_track = check_track_pair()
+
+    if audio_track == nil or midi_track == nil then
+      reaper.ShowMessageBox("The pair of tracks that you selected do not match.", "Error", 0)
+    return end
+  end
 
   -- Select only the MIDI track so we can get its items
   reaper.SetOnlyTrackSelected(midi_track)
