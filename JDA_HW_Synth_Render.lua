@@ -80,7 +80,7 @@ function check_track_pair()
   return audio_track, midi_track
 end
 
-function main(second_pass, new_track)
+function main(second_pass, make_new_track)
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock()
 
@@ -174,7 +174,7 @@ function main(second_pass, new_track)
     reaper.TrackFX_SetEnabled(audio_track, i, state)
   end
 
-  if new_track then
+  if make_new_track then
     -- Get the number of FX in the source track
     local num_fx = reaper.TrackFX_GetCount(audio_track)
 
@@ -196,7 +196,7 @@ function main(second_pass, new_track)
   -- Unmute the original audio track because the render mutes it
   reaper.SetMediaTrackInfo_Value(audio_track, "B_MUTE", 0)
 
-  if new_track then
+  if make_new_track then
     -- Move the audio track above the new track because the new track is made above it for some reason
     reaper.SetOnlyTrackSelected(audio_track)
     local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
