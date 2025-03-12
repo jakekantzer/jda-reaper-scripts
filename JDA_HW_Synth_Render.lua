@@ -198,10 +198,10 @@ function main(second_pass, make_new_track)
   reaper.SetMediaTrackInfo_Value(audio_track, "B_MUTE", 0)
 
   if make_new_track then
-    -- Move the audio track above the new track because the new track is made above it for some reason
-    reaper.SetOnlyTrackSelected(audio_track)
-    local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
-    reaper.ReorderSelectedTracks(new_track_id - 1, 0)
+    -- Move the stem track below the MIDI track
+    reaper.SetOnlyTrackSelected(new_track)
+    local midi_track_id = math.floor(reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER"))
+    reaper.ReorderSelectedTracks(midi_track_id, 0)
 
     -- Color and name based on the MIDI track
     reaper.SetTrackColor(new_track, reaper.GetTrackColor(midi_track))
