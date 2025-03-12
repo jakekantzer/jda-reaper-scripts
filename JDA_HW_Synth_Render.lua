@@ -64,15 +64,16 @@ function check_track_pair()
   local second_track = reaper.GetSelectedTrack(0, 1)
   local retval, second_track_name = reaper.GetTrackName(second_track)
 
+  -- If a pair of tracks was selected, we're okay with any MIDI/audio track pair
   if string.sub(first_track_name, -4) == " [M]" then
     midi_track = first_track
-    if second_track_name == string.sub(first_track_name, 1, #first_track_name - 4) .. " [A]" then
+    if string.sub(second_track_name, -4) == " [A]" then
       audio_track = second_track
     end
   elseif string.sub(first_track_name, -4) == " [A]" then
     audio_track = first_track
     
-    if second_track_name == string.sub(first_track_name, 1, #first_track_name - 4) .. " [M]" then
+    if string.sub(second_track_name, -4) == " [M]" then
       midi_track = second_track
     end
   end
@@ -87,7 +88,7 @@ function main(second_pass, make_new_track)
   -- Check if one or two tracks are selected
   local selected_track_count = reaper.CountSelectedTracks(0)
   if selected_track_count ~= 1 and selected_track_count ~= 2 then
-    reaper.ShowMessageBox("Please select a single track ending with [M] or [A] or a matching track pair.", "Error", 0)
+    reaper.ShowMessageBox("Please select a single track ending with [M] or [A] or a MIDI/audio track pair.", "Error", 0)
   return end
 
   -- Attempt to get the audio and MIDI track pair
@@ -105,7 +106,7 @@ function main(second_pass, make_new_track)
     audio_track, midi_track = check_track_pair()
 
     if audio_track == nil or midi_track == nil then
-      reaper.ShowMessageBox("The pair of tracks that you selected do not match.", "Error", 0)
+      reaper.ShowMessageBox("The pair of tracks that you selected are not a MIDI/audio track pair.", "Error", 0)
     return end
   end
 
@@ -202,10 +203,10 @@ function main(second_pass, make_new_track)
     local new_track_id = math.floor(reaper.GetMediaTrackInfo_Value(new_track, "IP_TRACKNUMBER"))
     reaper.ReorderSelectedTracks(new_track_id - 1, 0)
 
-    -- Color and name
-    reaper.SetTrackColor(new_track, reaper.GetTrackColor(audio_track))
-    local retval, audio_track_name = reaper.GetTrackName(audio_track)
-    local new_track_name = string.sub(audio_track_name, 1, -5) .. " [S]"
+    -- Color and name based on the MIDI track
+    reaper.SetTrackColor(new_track, reaper.GetTrackColor(midi_track))
+    local retval, midi_track_name = reaper.GetTrackName(midi_track)
+    local new_track_name = string.sub(midi_track_name, 1, -5) .. " [S]"
     reaper.GetSetMediaTrackInfo_String(new_track, "P_NAME", new_track_name, true)
     reaper.SetOnlyTrackSelected(new_track)
   else
