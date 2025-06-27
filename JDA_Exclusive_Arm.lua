@@ -35,6 +35,9 @@ function main()
     
     -- If a track was just armed and shift is NOT held, disarm all others
     if newly_armed_track ~= nil and not shift_held then
+        reaper.PreventUIRefresh(1)
+        reaper.Undo_BeginBlock()
+
         for i = 0, track_count - 1 do
             if i ~= newly_armed_track then
                 local track = reaper.GetTrack(0, i)
@@ -49,9 +52,13 @@ function main()
         -- Update button states for track record arm buttons
         reaper.Main_OnCommand(40020, 0) -- Track: Toggle record arming for current track (updates UI)
         
+        reaper.PreventUIRefresh(-1)
+
         -- Force UI refresh to update button states
         reaper.UpdateArrange()
         reaper.TrackList_AdjustWindows(false)
+
+        reaper.Undo_EndBlock('Unarmed previously armed tracks', -1)
     end
     
     -- Store current state for next iteration
