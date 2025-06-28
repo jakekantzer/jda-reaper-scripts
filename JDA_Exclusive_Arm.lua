@@ -23,7 +23,7 @@ function main()
         -- Store current state and defer without doing anything
         for i = 0, track_count - 1 do
             local track = reaper.GetTrack(0, i)
-            if track then -- Add nil check
+            if track then
                 local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
                 
                 -- Only track non-input-monitoring tracks
@@ -72,7 +72,7 @@ function main()
     -- Check current armed state of all tracks (ignore I_RECMODE 2 tracks completely)
     for i = 0, track_count - 1 do
         local track = reaper.GetTrack(0, i)
-        if track then -- Add nil check
+        if track then
             local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
             
             -- Completely ignore tracks with record mode 2 (input monitoring)
@@ -122,28 +122,14 @@ function main()
         -- Only proceed if there were actually other tracks armed before
         if previously_armed_count > 0 then
             reaper.PreventUIRefresh(1)
-            
-            -- First undo the last action that armed the track
-            reaper.Main_OnCommand(40029, 0) -- Edit: Undo
-            
-            -- Now begin our own undo block and reapply everything as one unit
             reaper.Undo_BeginBlock()
             
-            -- Re-arm the newly armed track (with bounds check and rec mode check)
-            local track = reaper.GetTrack(0, newly_armed_track)
-            if track then
-                local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
-                if rec_mode ~= 2 then
-                    reaper.SetMediaTrackInfo_Value(track, "I_RECARM", 1)
-                end
-            end
-            
-            -- Disarm all other tracks (get fresh track count and add nil checks)
+            -- Disarm all other tracks
             current_track_count = reaper.CountTracks(0)
             for i = 0, current_track_count - 1 do
                 if i ~= newly_armed_track then
                     local other_track = reaper.GetTrack(0, i)
-                    if other_track then -- Add nil check here - this was missing in original
+                    if other_track then
                         local rec_mode = reaper.GetMediaTrackInfo_Value(other_track, "I_RECMODE")
                         -- Only disarm tracks that don't have record mode 2
                         if rec_mode ~= 2 then
@@ -153,14 +139,11 @@ function main()
                 end
             end
            
-            -- Update button states for track record arm buttons
-            reaper.Main_OnCommand(40020, 0) -- Track: Toggle record arming for current track (updates UI)
-           
+            -- Update UI
             reaper.PreventUIRefresh(-1)
-            -- Force UI refresh to update button states
             reaper.UpdateArrange()
             reaper.TrackList_AdjustWindows(false)
-            reaper.Undo_EndBlock('Auto-disarm: Armed track and disarmed others', -1)
+            reaper.Undo_EndBlock('Auto-disarm: Disarmed other tracks', -1)
         end
     end
    
