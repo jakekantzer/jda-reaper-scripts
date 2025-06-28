@@ -42,30 +42,6 @@ function main()
         return
     end
    
-    -- If track count changed, tracks were added/removed - skip auto-disarm logic this cycle
-    if track_count ~= last_track_count then
-        -- Just update our tracking and defer
-        for i = 0, track_count - 1 do
-            local track = reaper.GetTrack(0, i)
-            if track then
-                local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
-                
-                -- Only track non-input-monitoring tracks
-                if rec_mode ~= 2 then
-                    local is_armed = reaper.GetMediaTrackInfo_Value(track, "I_RECARM")
-                   
-                    if is_armed == 1 then
-                        current_armed_tracks[i] = true
-                    end
-                end
-            end
-        end
-        last_armed_tracks = current_armed_tracks
-        last_track_count = track_count
-        reaper.defer(main)
-        return
-    end
-   
     -- Check if shift is held down
     local shift_held = reaper.JS_Mouse_GetState(8) & 8 ~= 0 -- Check shift key
    
