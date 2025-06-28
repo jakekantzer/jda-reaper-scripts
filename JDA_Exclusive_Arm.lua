@@ -57,14 +57,25 @@ function main()
         local newly_armed_track = newly_armed_tracks[1]
        
         reaper.PreventUIRefresh(1)
+        
+        -- First undo the last action that armed the track
+        reaper.Main_OnCommand(40029, 0) -- Edit: Undo
+        
+        -- Now begin our own undo block and reapply everything as one unit
         reaper.Undo_BeginBlock()
+        
+        -- Re-arm the newly armed track
+        local track = reaper.GetTrack(0, newly_armed_track)
+        reaper.SetMediaTrackInfo_Value(track, "I_RECARM", 1)
+        
+        -- Disarm all other tracks
         for i = 0, track_count - 1 do
             if i ~= newly_armed_track then
-                local track = reaper.GetTrack(0, i)
-                local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
+                local other_track = reaper.GetTrack(0, i)
+                local rec_mode = reaper.GetMediaTrackInfo_Value(other_track, "I_RECMODE")
                 -- Only disarm tracks that don't have record mode 2
                 if rec_mode ~= 2 then
-                    reaper.SetMediaTrackInfo_Value(track, "I_RECARM", 0)
+                    reaper.SetMediaTrackInfo_Value(other_track, "I_RECARM", 0)
                 end
             end
         end
@@ -76,7 +87,7 @@ function main()
         -- Force UI refresh to update button states
         reaper.UpdateArrange()
         reaper.TrackList_AdjustWindows(false)
-        reaper.Undo_EndBlock('Unarmed previously armed tracks', -1)
+        reaper.Undo_EndBlock('Auto-disarm: Armed track and disarmed others', -1)
     end
    
     -- Store current state for next iteration
