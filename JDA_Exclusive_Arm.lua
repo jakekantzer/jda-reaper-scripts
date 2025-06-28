@@ -1,6 +1,8 @@
 -- Auto-disarm all other tracks when one is armed
+-- Only runs if there is no redo action available
 -- Run this script as a background script with defer
 -- Holds shift to allow multi-arm
+
 function SetButtonState(set)
   local is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
   reaper.SetToggleCommandState(sec, cmd, set or 0)
@@ -13,6 +15,24 @@ function main()
     local track_count = reaper.CountTracks(0)
     local current_armed_tracks = {}
     local newly_armed_tracks = {}
+   
+    -- Check if there's a redo action available - if so, skip auto-disarm logic
+    local can_redo = reaper.Undo_CanRedo2(0)
+    if can_redo and can_redo ~= "" then
+        -- Store current state and defer without doing anything
+        for i = 0, track_count - 1 do
+            local track = reaper.GetTrack(0, i)
+            local is_armed = reaper.GetMediaTrackInfo_Value(track, "I_RECARM")
+            local rec_mode = reaper.GetMediaTrackInfo_Value(track, "I_RECMODE")
+           
+            if is_armed == 1 and rec_mode ~= 2 then
+                current_armed_tracks[i] = true
+            end
+        end
+        last_armed_tracks = current_armed_tracks
+        reaper.defer(main)
+        return
+    end
    
     -- Check if shift is held down
     local shift_held = reaper.JS_Mouse_GetState(8) & 8 ~= 0 -- Check shift key
@@ -35,7 +55,7 @@ function main()
     -- Only disarm other tracks if exactly ONE track was newly armed and shift is NOT held
     if #newly_armed_tracks == 1 and not shift_held then
         local newly_armed_track = newly_armed_tracks[1]
-        
+       
         reaper.PreventUIRefresh(1)
         reaper.Undo_BeginBlock()
         for i = 0, track_count - 1 do
