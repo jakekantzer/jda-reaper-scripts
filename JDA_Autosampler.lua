@@ -152,11 +152,11 @@ local function prompt()
       "C2-C6","1","1.0","0.3","1","","Patch","y",
       "64 127",
       "N",
-      "20",
+      "60",
       "80",
       "1",
       "0",
-      "n"
+      "y"
     },",")
   )
   if not ok then return nil, "Cancelled" end
