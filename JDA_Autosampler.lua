@@ -114,7 +114,17 @@ local function compute_velocity_ranges(vels)
 end
 
 local function ensure_dir(path)
+  if not path or path == "" then return end
   reaper.RecursiveCreateDirectory(path, 0)
+end
+
+local function strip_surrounding_quotes(s)
+  if not s then return s end
+  s = trim(s)
+  if (#s >= 2) and ((s:sub(1,1) == '"' and s:sub(-1) == '"') or (s:sub(1,1) == "'" and s:sub(-1) == "'")) then
+    return s:sub(2, -2)
+  end
+  return s
 end
 
 local function join_path(a,b)
@@ -137,7 +147,7 @@ end
 local function prompt()
   local ok, vals = reaper.GetUserInputs(
     "Autosampler Setup",
-    14,
+    15,
     table.concat({
       "Range (e.g. C2-C6)",
       "Note interval",
@@ -153,6 +163,7 @@ local function prompt()
       "RR count (>=1)",
       "Loop xfade (ms, 0=off)",
       "Extend to full (y/n)",
+      "Output directory (blank=project/prefix)",
     },","),
     -- Important: do not include commas in defaults; GetUserInputs splits on commas.
     table.concat({
@@ -163,14 +174,15 @@ local function prompt()
       "80",
       "1",
       "0",
-      "y"
+      "y",
+      ""
     },",")
   )
   if not ok then return nil, "Cancelled" end
-  -- Split to 14 fields; velocity field may contain spaces/semicolons (we normalize later)
-  local fields = split_n(vals, ",", 14)
+  -- Split to 15 fields; velocity field may contain spaces/semicolons (we normalize later)
+  local fields = split_n(vals, ",", 15)
   local R, step, nlen, tail, chan, prefix, write_sfz, vels,
-        loop_mode_in, loop_start_pct_in, loop_end_pct_in, rr_in, loop_xfade_ms_in, extend_full_in = table.unpack(fields)
+        loop_mode_in, loop_start_pct_in, loop_end_pct_in, rr_in, loop_xfade_ms_in, extend_full_in, outdir_in = table.unpack(fields)
   local range, er = parse_note_range(R)
   if not range then return nil, er end
   step = tonumber(step or "1") or 1
@@ -219,6 +231,8 @@ local function prompt()
     local ef = (extend_full_in or "n"):lower()
     extend_full = (ef == "y" or ef == "yes" or ef == "1" or ef == "true")
   end
+  local outdir = strip_surrounding_quotes(outdir_in or "")
+  outdir = trim(outdir)
 
   -- Project sample rate (0 means follow audio device; fallback to 44100 here)
   local sr = reaper.GetSetProjectInfo(0, "PROJECT_SRATE", 0, false)
@@ -239,7 +253,8 @@ local function prompt()
     loop_end_pct=le_pct,
     rr_count=rr,
     loop_xfade_ms=loop_xfade_ms,
-    extend_full=extend_full
+    extend_full=extend_full,
+    outdir=outdir
   }
 end
 
@@ -291,7 +306,7 @@ local function build_items(cfg, track)
 end
 
 local function write_sfz(cfg, items)
-  if cfg.outdir == "" then
+  if not cfg.outdir or cfg.outdir == "" then
     -- Default to <project>/<prefix>
     local proj_path = reaper.GetProjectPath(0, "")
     cfg.outdir = join_path(proj_path, sanitize_filename(cfg.prefix or "Patch"))
@@ -367,7 +382,7 @@ local function main()
     return
   end
   -- Default output folder when left blank: <project>/<prefix>
-  if cfg.outdir == "" then
+  if not cfg.outdir or cfg.outdir == "" then
     local proj_path = reaper.GetProjectPath(0, "")
     cfg.outdir = join_path(proj_path, sanitize_filename(cfg.prefix or "Patch"))
   end
