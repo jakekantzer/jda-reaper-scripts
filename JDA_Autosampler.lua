@@ -134,9 +134,6 @@ local function sanitize_filename(name)
   return name
 end
 
--- Convert compact/friendly loop mode input to canonical SFZ token
--- (normalize_loop_mode removed; explicit SFZ tokens are used instead)
-
 local function prompt()
   local ok, vals = reaper.GetUserInputs(
     "Autosampler Setup",
