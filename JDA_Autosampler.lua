@@ -123,20 +123,30 @@ local function join_path(a,b)
   return a .. sep .. b
 end
 
+-- Sanitize a string for safe folder/file names
+local function sanitize_filename(name)
+  name = tostring(name or "")
+  name = name:gsub("[%c%z\\/:*?\"<>|]+", "_") -- replace illegal chars
+  name = name:gsub("%s+", " ")
+  name = trim(name)
+  name = name:gsub("%.+$", "") -- strip trailing dots
+  if name == "" then name = "Patch" end
+  return name
+end
+
 -- Convert compact/friendly loop mode input to canonical SFZ token
 -- (normalize_loop_mode removed; explicit SFZ tokens are used instead)
 
 local function prompt()
   local ok, vals = reaper.GetUserInputs(
     "Autosampler Setup",
-    15,
+    14,
     table.concat({
       "Range (e.g. C2-C6)",
       "Note interval",
       "Note length (sec)",
       "Tail (sec)",
       "Channel (1-16)",
-      "Output folder",
       "Name prefix",
       "Write SFZ? (y/n)",
       "Velocities (e.g. 64 127)",
@@ -149,7 +159,7 @@ local function prompt()
     },","),
     -- Important: do not include commas in defaults; GetUserInputs splits on commas.
     table.concat({
-      "C2-C6","1","1.0","0.3","1","","Patch","y",
+      "C2-C6","1","1.0","0.3","1","Patch","y",
       "64 127",
       "N",
       "60",
@@ -160,9 +170,9 @@ local function prompt()
     },",")
   )
   if not ok then return nil, "Cancelled" end
-  -- Split to 15 fields; velocity field may contain spaces/semicolons (we normalize later)
-  local fields = split_n(vals, ",", 15)
-  local R, step, nlen, tail, chan, outdir, prefix, write_sfz, vels,
+  -- Split to 14 fields; velocity field may contain spaces/semicolons (we normalize later)
+  local fields = split_n(vals, ",", 14)
+  local R, step, nlen, tail, chan, prefix, write_sfz, vels,
         loop_mode_in, loop_start_pct_in, loop_end_pct_in, rr_in, loop_xfade_ms_in, extend_full_in = table.unpack(fields)
   local range, er = parse_note_range(R)
   if not range then return nil, er end
@@ -176,7 +186,6 @@ local function prompt()
   if not (nlen and nlen > 0) then return nil, "Note length must be > 0" end
   if not (tail and tail >= 0) then return nil, "Tail must be >= 0" end
   if not (chan and chan >= 1 and chan <= 16) then return nil, "Channel 1-16" end
-  outdir = trim(outdir or "")
   prefix = trim(prefix or "Patch")
   local ws = (write_sfz or "y"):lower()
   local want_sfz = (ws == "y" or ws == "yes" or ws == "1" or ws == "true")
@@ -225,7 +234,6 @@ local function prompt()
     note_len=nlen,
     tail=tail,
     chan=chan-1,
-    outdir=outdir,
     prefix=prefix,
     write_sfz=want_sfz,
     sample_rate=sr,
@@ -287,9 +295,9 @@ end
 
 local function write_sfz(cfg, items)
   if cfg.outdir == "" then
-    -- Default to project directory
+    -- Default to <project>/<prefix>
     local proj_path = reaper.GetProjectPath(0, "")
-    cfg.outdir = proj_path
+    cfg.outdir = join_path(proj_path, sanitize_filename(cfg.prefix or "Patch"))
   end
   ensure_dir(cfg.outdir)
   local sfz_path = join_path(cfg.outdir, cfg.prefix .. ".sfz")
@@ -361,6 +369,12 @@ local function main()
     reaper.ShowMessageBox(err or "Invalid input", "Autosampler", 0)
     return
   end
+  -- Default output folder when left blank: <project>/<prefix>
+  if cfg.outdir == "" then
+    local proj_path = reaper.GetProjectPath(0, "")
+    cfg.outdir = join_path(proj_path, sanitize_filename(cfg.prefix or "Patch"))
+  end
+  ensure_dir(cfg.outdir)
   local track, terr = get_selected_track()
   if not track then
     reaper.ShowMessageBox(terr or "Select one track", "Autosampler", 0)
@@ -403,7 +417,7 @@ Render the samples:
 - File name: $item (keeps names consistent if you build a map later)
 - Render
 
-Make sure to do an Online Render if you're recording hardware.]]):format(#items, sfz_path, (cfg.outdir ~= "" and cfg.outdir or reaper.GetProjectPath(0, "")))
+Make sure to do an Online Render if you're recording hardware.]]):format(#items, sfz_path, cfg.outdir)
   else
     msg = ([[Created %d MIDI items (SFZ skipped)
 
@@ -414,7 +428,7 @@ Render the samples:
 - File name: $item (keeps names consistent if you build a map later)
 - Render
 
-Make sure to do an Online Render if you're recording hardware.]]):format(#items, (cfg.outdir ~= "" and cfg.outdir or reaper.GetProjectPath(0, "")))
+Make sure to do an Online Render if you're recording hardware.]]):format(#items, cfg.outdir)
   end
   reaper.ShowMessageBox(msg, "Autosampler", 0)
   reaper.Undo_EndBlock("Autosampler: build MIDI + SFZ", -1)
