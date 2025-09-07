@@ -2,7 +2,7 @@
   @author Jake d'Arc
   @license MIT
   @version 1.0.0
-  @about Auto-add sends (at -inf dB) from newly created tracks to all tracks with names ending in " [FX]". Skips tracks that have a hardware MIDI output. Persistently remembers processed tracks per-project so it never re-applies to existing tracks.
+  @about Auto-add sends (at -inf dB) from newly created tracks to all tracks with names ending in " [FX]". Skips tracks that have a hardware MIDI output, and also skips adding sends from tracks that are themselves named " [FX]". Persistently remembers processed tracks per-project so it never re-applies to existing tracks.
   @changelog
     - Initial version
   @provides
@@ -133,10 +133,14 @@ local function main()
       processed[guid] = true
       mut_changed = true
 
-      -- Basic skip: ignore tracks with hardware MIDI output
+      -- Basic skips
+      -- 1) Ignore tracks with hardware MIDI output
       local has_hw_midi = (reaper.GetMediaTrackInfo_Value(tr, "I_MIDIHWOUT") or -1) >= 0
+      -- 2) Do not add sends FROM tracks that are themselves [FX]
+      local _, src_name = reaper.GetTrackName(tr)
+      local is_src_fx = src_name:sub(-5) == " [FX]"
 
-      if #fxList > 0 and not has_hw_midi then
+      if #fxList > 0 and not has_hw_midi and not is_src_fx then
         reaper.Undo_BeginBlock()
         reaper.PreventUIRefresh(1)
         addSendsAtNegInf(tr, fxList)
