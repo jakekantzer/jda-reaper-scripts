@@ -181,7 +181,6 @@ function main(second_pass, make_new_track)
 
     -- Copy all FX
     for i = 0, num_fx - 1 do
-      local fx_chunk = reaper.TrackFX_GetFXGUID(audio_track, i)
       reaper.TrackFX_CopyToTrack(audio_track, i, new_track, reaper.TrackFX_GetCount(new_track), false)
     end
   end
