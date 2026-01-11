@@ -1,5 +1,5 @@
 --[[
-  @author Jake d'Arc
+  @author Jake Kantzer
   @license MIT
   @version 1.0.0
   @about Auto-add sends (at -inf dB) from newly created tracks to all tracks with names ending in " [FX]". Skips tracks that have a hardware MIDI output, and also skips adding sends from tracks that are themselves named " [FX]". Persistently remembers processed tracks per-project so it never re-applies to existing tracks.

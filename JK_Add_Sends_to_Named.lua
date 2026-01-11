@@ -1,5 +1,5 @@
 --[[
-  @author Jake d'Arc
+  @author Jake Kantzer
   @license MIT
   @version 1.0.0
   @about Add sends from selected track(s) to tracks with names ending with " [FX]"

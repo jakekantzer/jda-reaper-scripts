@@ -1,5 +1,5 @@
 --[[
-  @author Jake d'Arc
+  @author Jake Kantzer
   @license MIT
   @version 1.0.0
   @about When on, keeps tracks ending with " [A]" armed 

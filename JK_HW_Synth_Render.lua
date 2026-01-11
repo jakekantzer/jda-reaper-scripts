@@ -1,13 +1,15 @@
 --[[
-  @author Jake d'Arc
+  @author Jake Kantzer
   @license MIT
   @version 1.0.0
   @about Real-time pre-FX rendering and FX chain copying for MIDI/audio track pairs, intended for hardware synths
   @changelog
     - init
   @provides
-    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_1P.lua
-    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_2P.lua
+    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_1P_To_New_Track.lua
+    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_1P_To_Existing_Track.lua
+    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_2P_To_New_Track.lua
+    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_2P_To_Existing_Track.lua
 ]]
 
 function bounce(second_pass)
