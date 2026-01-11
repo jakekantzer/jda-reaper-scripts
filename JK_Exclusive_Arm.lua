@@ -1,7 +1,13 @@
--- Auto-disarm all other tracks when one is armed
--- Only runs if there is no redo action available
--- Run this script as a background script with defer
--- Holds shift to allow multi-arm
+--[[
+  @author Jake Kantzer
+  @license MIT
+  @version 1.0.0
+  @about When on, auto-disarms all other tracks when arming one - hold shift to multi-arm
+  @changelog
+    - init
+  @provides
+    [main] JK_Exclusive_Arm.lua
+]]
 
 function SetButtonState(set)
   local is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()

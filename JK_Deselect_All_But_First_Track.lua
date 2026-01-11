@@ -1,8 +1,13 @@
--- Deselect all but first track when multiple tracks are added
--- Only acts if one of the tracks is record armed upon being added
--- Disarms all other tracks if exactly one selected record-armed new track is not in monitoring mode
--- Runs continuously with defer to monitor track changes
--- Save as .lua file and load into REAPER Actions
+--[[
+  @author Jake Kantzer
+  @license MIT
+  @version 1.0.0
+  @about Deselect all but first track when multiple tracks are added if one is record armed
+  @changelog
+    - init
+  @provides
+    [main] JK_Deselect_All_But_First_Track.lua
+]]
 
 local last_track_count = 0
 local script_title = "Monitor and deselect all but first track (record armed only)"

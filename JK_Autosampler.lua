@@ -1,5 +1,13 @@
--- Reaper Autosampler
--- Creates MIDI items per note/velocity and an SFZ mapping
+--[[
+  @author Jake Kantzer
+  @license MIT
+  @version 1.0.0
+  @about Creates MIDI regions and an SFZ mapping automatically, allowing you to make an instrument by rendering the regions
+  @changelog
+    - init
+  @provides
+    [main] JK_Autosampler.lua
+]]
 
 local reaper = reaper
 
