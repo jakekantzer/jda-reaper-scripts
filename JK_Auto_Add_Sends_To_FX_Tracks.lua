@@ -6,11 +6,11 @@
   @changelog
     - Initial version
   @provides
-    [main] JDA_Auto_Add_Sends_To_FX_Tracks.lua
+    [main] JK_Auto_Add_Sends_To_FX_Tracks.lua
 ]]
 
 local SCRIPT_NAME = "Auto add -inf sends to [FX] (new tracks only)"
-local EXT_SECTION = "JDA_AUTO_SENDS"
+local EXT_SECTION = "JK_AUTO_SENDS"
 local EXT_KEY = "processed_guids"
 
 -- Toggle button helpers

@@ -6,7 +6,7 @@
   @changelog
     - init
   @provides
-    [main] JDA_Keep_Monitoring_Tracks_Armed.lua
+    [main] JK_Keep_Monitoring_Tracks_Armed.lua
 ]]
 
 function SetButtonState(set)

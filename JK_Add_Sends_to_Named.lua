@@ -6,7 +6,7 @@
   @changelog
     - init
   @provides
-    [main] JDA_Add_Sends_to_Named.lua
+    [main] JK_Add_Sends_to_Named.lua
 ]]
 
 function main()
@@ -43,12 +43,10 @@ function main()
           end
         end
 
-        if duplicate_send then goto continue end
-
-        local new_send = reaper.CreateTrackSend(start_track, track)
-        reaper.SetTrackSendUIVol(start_track, new_send, 0, -1)
-
-        ::continue::
+        if not duplicate_send then
+          local new_send = reaper.CreateTrackSend(start_track, track)
+          reaper.SetTrackSendUIVol(start_track, new_send, 0, -1)
+        end
       end
     end
   end

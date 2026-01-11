@@ -6,8 +6,8 @@
   @changelog
     - init
   @provides
-    [main] JDA_HW_Synth_Render/JDA_HW_Synth_Render_1P.lua
-    [main] JDA_HW_Synth_Render/JDA_HW_Synth_Render_2P.lua
+    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_1P.lua
+    [main] JK_HW_Synth_Render/JK_HW_Synth_Render_2P.lua
 ]]
 
 function bounce(second_pass)
